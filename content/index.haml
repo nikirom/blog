@@ -1,0 +1,8 @@
+- sorted_articles[0, 6].each do |article|
+  %h2 #{link_to(article[:title], article.path)}
+  - if article_desc_match_data = article.compiled_content.match(/^.*?(?=<h2>)/m)
+    = article_desc_match_data.to_s
+    %p.readmore
+      = link_to("記事の続きを読む &raquo;", article.path)
+  - else
+    = article.compiled_content
