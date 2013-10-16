@@ -36,7 +36,7 @@
           / insert the page content here
           - if item[:title] != nil
             %h1= item[:title]
-          = yield
+          ~ yield
       - if item[:title] != nil
         = prev_link
         = next_link
