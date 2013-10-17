@@ -1,0 +1,171 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>だん死はnikirom</title>
+    <meta content='nanoc 3.6.4' name='generator'>
+    <meta content='text/html; charset=utf-8' http-equiv='content-type'>
+    <link href='http://fonts.googleapis.com/css?family=Tangerine&amp;v1' rel='stylesheet' type='text/css'>
+    <link href='http://fonts.googleapis.com/css?family=Yanone+Kaffeesatz' rel='stylesheet' type='text/css'>
+    <link href='http://fonts.googleapis.com/css?family=Source+Code+Pro' rel='stylesheet' type='text/css'>
+    <link href='/style/style.css' rel='stylesheet' type='text/css'>
+  </head>
+  <body>
+    <div id='main'>
+      <div id='header'>
+        <div id='logo'>
+          <h1>
+            <a href='/index.html'>だん死はnikirom</a>
+          </h1>
+        </div>
+        <div id='menubar'>
+          <ul id='menu'></ul>
+        </div>
+      </div>
+      <a class="left" href="/articles/2013-08-30/">&laquo;[Older]   さくらVPSのOS入れ替え</a>
+      <a class="right" href="/articles/2013-09-27/">西沢さんAPI   [Newer]&raquo;</a>
+      <div id='site_content'>
+        <div id='sidebar_container'>
+          <img alt='paperclip' class='paperclip' src='/style/paperclip.png'>
+          <div class='sidebar'>
+            <h3>Latest</h3>
+            <li><a href="/articles/2013-09-27/">西沢さんAPI</a> 2013/09/27 22:31:22</li>
+            <li><a href="/articles/test/">西沢さんAPI</a> 2013/09/27 22:31:22</li>
+            <li><a href="/articles/2013-08-30/">さくらVPSのOS入れ替え</a> 2013/08/30 21:33:22</li>
+            <li><a href="/articles/2013-03-30/">CentOS6.4上にnginx+spawn-fcgi+PHP5.4をyumで</a> 2013/03/30 14:27:01</li>
+            <li><a href="/articles/2013-03-23/">nanocメモ2</a> 2013/03/23 04:19:29</li>
+            <li><a href="/articles/2013-03-17/">メモ</a> 2013/03/17 18:17:51</li>
+            <li><a href="/articles/2012-04-28/">Home</a> 2012/04/28 00:30:31</li>
+          </div>
+          <img alt='paperclip' class='paperclip' src='/style/paperclip.png'>
+          <div class='sidebar'>
+            <a class='twitter-timeline' data-widget-id='315184046252621824' href='https://twitter.com/nnikirom'>Tweets by @nnikirom</a>
+            <script>
+              !function(d,s,id){var js,fjs=d.getElementsByTagName(s)[0];if(!d.getElementById(id)){js=d.createElement(s);js.id=id;js.src="//platform.twitter.com/widgets.js";fjs.parentNode.insertBefore(js,fjs);}}(document,"script","twitter-wjs");
+            </script>
+          </div>
+        </div>
+        <div id='content'>
+          <!-- insert the page content here -->
+          <h1>西沢さんAPI</h1>
+          <p><a href="http://mogashi.hateblo.jp/entry/2013/09/24/000619" title="きんモザのアリスのgif画像を取得するAPIを作った">最高にやばいAPI</a>をTwitterで見かけてランダムでハヤテのごとく！の西沢さん画像が出てくる何かを作った</p>
+          
+          <p>あと、「西沢さん」て単語が入ってるツイートを必ずふぁぼってくる方にお願いされたのも理由の一つ</p>
+          
+          <p><a href="http://www.nikirom.com/nishizawasan">http://www.nikirom.com/nishizawasan</a></p>
+          
+          <h2>ngx_mrubyのインストール</h2>
+          
+          <p>前にサーバ入れなおした時にngx_mruby入れてたから、軽くスクリプト書けば出来るんだろうと甘く見てた。</p>
+          
+          <p>Dirクラスと正規表現をmrubyが使えるようにngx_mrubyをインストール</p>
+          
+          <p>※/usr/local/srcにnginxとngx_mrubyが展開されてる</p>
+          
+          <p>ngx_mrubyディレクトリ内で</p>
+          
+          <pre><code>
+          # git submodule init
+          # git submodule update
+          </code></pre>
+          
+          <p>これでngx<em>devel</em>kit.gitとmrubyが適切に配置される。</p>
+          
+          <p>Dirクラスと正規表現のための設定</p>
+          
+          <pre><code># build_config.rb
+          MRuby::Build.new do |conf|
+          (snip)
+          
+            conf.gem :github => 'iij/mruby-dir'
+            conf.gem :github => 'matsumoto-r/mruby-redis'
+            conf.gem :github => 'masamitsu-murase/mruby-hs-regexp'
+          
+          (snip)
+          </code></pre>
+          
+          <p>mruby-redisは画像表示のとこで使おうと思ったけど今回は未使用</p>
+          
+          <p>正規表現に関しては何個かあるんだけど1つコンパイルに失敗してmruby-hs-regexpだと通った。</p>
+          
+          <p><a href="http://mattn.kaoriya.net/software/lang/ruby/20130221172829.htm" title="mruby から正規表現が消え、正規表現がやってきた。">参考</a></p>
+          
+          <p>nginxとngx_mrubyのインストール</p>
+          
+          <pre><code>
+          # ./configure --with-ngx-src-root=/usr/local/src/nginx-1.4.2 --with-ngx-config-opt="--prefix=/usr/local/nginx --with-http_ssl_module"
+          # make && make instakk
+          </code></pre>
+          
+          <p>with-ngx-config-optにnginxに渡したいconfigオプションを設定</p>
+          
+          <h2>nginxの設定</h2>
+          
+          <p>今回はmrubyをファイルに書いてるので</p>
+          
+          <pre><code># nginx.conf
+          (snip)
+          
+                 location /nishizawasan {
+                      mruby_content_handler /path/index.mrb;
+                  }
+          
+          (snip)
+          </code></pre>
+          
+          <p>コード、もっとまともに書けるようになりたい…</p>
+          
+          <pre><code># index.mrb
+          header = Nginx::Headers_in.new
+          file = Array.new
+          
+          if header["User-Agent"] =~ /Chrome|Opera/
+            Dir.open("/full/img-path").each{|f|
+              if f =~ /\.gif|\.png|\.webp/
+                file.push f
+              end
+            }
+          
+            Nginx.rputs("<html>")
+            Nginx.rputs("<img src=\"/img-path/" + file[rand(file.length)] + "\">")
+            Nginx.rputs("</html>")
+          
+          else
+          
+            Dir.open("/full/img-path/").each{|f|
+              if f =~ /\.gif|\.jpeg|\.png|\.jpg/
+                file.push f
+              end
+            }
+          
+            Nginx.rputs("<html>")
+            Nginx.rputs("<img src=\"/img-path/" + file[rand(file.length)] + "\">")
+            Nginx.rputs("</html>")
+          end
+          </code></pre>
+          
+          <p>UAでwebpフォーマットの画像を出すかどうかの判定をしている。</p>
+          
+          <p>クラスとか使ってスタイリッシュに書きたいけどどうすればいいんだ</p>
+          
+          <h2>参考</h2>
+          
+          <p>ngx_mrubyの作者さんのブログ <a href="http://blog.matsumoto-r.jp/">人間とウェブの未来</a></p>
+          
+          <p>ngx_mrubyの情報まとめた方 <a href="https://github.com/cubicdaiya/mruby_nginx_module/wiki">https://github.com/cubicdaiya/mruby<em>nginx</em>module/wiki</a></p>
+        </div>
+      </div>
+      <a class="left" href="/articles/2013-08-30/">&laquo;[Older]   さくらVPSのOS入れ替え</a>
+      <a class="right" href="/articles/2013-09-27/">西沢さんAPI   [Newer]&raquo;</a>
+      <div id='footer'>
+        <p>
+          Copyright c simplestyle_7 
+          <a href='http://validator.w3.org/check?uri=referer'>HTML5</a>
+          |
+          <a href='http://jigsaw.w3.org/css-validator/check/referer'>CSS</a>
+          |
+          <a href='http://www.html5webtemplates.co.uk'>design from HTML5webtemplates.co.uk</a>
+        </p>
+      </div>
+    </div>
+  </body>
+</html>

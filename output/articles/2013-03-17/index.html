@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>メモ : だん死はnikirom</title>
+    <meta content='nanoc 3.6.4' name='generator'>
+    <meta content='text/html; charset=utf-8' http-equiv='content-type'>
+    <link href='http://fonts.googleapis.com/css?family=Tangerine&amp;v1' rel='stylesheet' type='text/css'>
+    <link href='http://fonts.googleapis.com/css?family=Yanone+Kaffeesatz' rel='stylesheet' type='text/css'>
+    <link href='http://fonts.googleapis.com/css?family=Source+Code+Pro' rel='stylesheet' type='text/css'>
+    <link href='/style/style.css' rel='stylesheet' type='text/css'>
+  </head>
+  <body>
+    <div id='main'>
+      <div id='header'>
+        <div id='logo'>
+          <h1>
+            <a href='/index.html'>だん死はnikirom</a>
+          </h1>
+        </div>
+        <div id='menubar'>
+          <ul id='menu'></ul>
+        </div>
+      </div>
+      <a class="left" href="/articles/2012-04-28/">&laquo;[Older]   Home</a>
+      <a class="right" href="/articles/2013-03-23/">nanocメモ2   [Newer]&raquo;</a>
+      <div id='site_content'>
+        <div id='sidebar_container'>
+          <img alt='paperclip' class='paperclip' src='/style/paperclip.png'>
+          <div class='sidebar'>
+            <h3>Latest</h3>
+            <li><a href="/articles/2013-10-14/">西沢さんAPI改</a> 2013/10/14 01:00:05</li>
+            <li><a href="/articles/2013-09-27/">西沢さんAPI</a> 2013/09/27 22:31:22</li>
+            <li><a href="/articles/2013-08-30/">さくらVPSのOS入れ替え</a> 2013/08/30 21:33:22</li>
+            <li><a href="/articles/2013-03-30/">CentOS6.4上にnginx+spawn-fcgi+PHP5.4をyumで</a> 2013/03/30 14:27:01</li>
+            <li><a href="/articles/2013-03-23/">nanocメモ2</a> 2013/03/23 04:19:29</li>
+            <li><a href="/articles/2013-03-17/">メモ</a> 2013/03/17 18:17:51</li>
+            <li><a href="/articles/2012-04-28/">Home</a> 2012/04/28 00:30:31</li>
+          </div>
+          <img alt='paperclip' class='paperclip' src='/style/paperclip.png'>
+          <div class='sidebar'>
+            <a class='twitter-timeline' data-widget-id='315184046252621824' href='https://twitter.com/nnikirom'>Tweets by @nnikirom</a>
+            <script>
+              !function(d,s,id){var js,fjs=d.getElementsByTagName(s)[0];if(!d.getElementById(id)){js=d.createElement(s);js.id=id;js.src="//platform.twitter.com/widgets.js";fjs.parentNode.insertBefore(js,fjs);}}(document,"script","twitter-wjs");
+            </script>
+          </div>
+        </div>
+        <div id='content'>
+          <!-- insert the page content here -->
+          <h1>メモ</h1>
+          <p>毎回ググるのだるいし、一回覚えたのに時間経過とともに忘れてしまった時用のメモ</p>
+          
+          <p>ちなみにこれはnanocで書き出して静的にnginxで静的に配信してます</p>
+          
+          <h2>nanoc</h2>
+          
+          <ul>
+          <li>compileでファイル書き出し
+          
+          <ul>
+          <li>基本的にフィルターに渡す</li>
+          <li>itemはnanocで用意されてる。コンパイル対象ファイルの情報を色々持ってる</li>
+          </ul></li>
+          </ul>
+          <div class="CodeRay">
+            <div class="code"><pre>compile <span style="background-color:hsla(0,100%,50%,0.05)"><span style="color:#710">'</span><span style="color:#D20">*</span><span style="color:#710">'</span></span> <span style="color:#080;font-weight:bold">do</span>&#x000A;  <span style="color:#080;font-weight:bold">if</span> item.binary?&#x000A;    <span style="color:#777"># don’t filter binary items</span>&#x000A;  <span style="color:#080;font-weight:bold">else</span>&#x000A;   <span style="color:#080;font-weight:bold">case</span> item[<span style="color:#A60">:extension</span>]&#x000A;    <span style="color:#080;font-weight:bold">when</span> <span style="background-color:hsla(0,100%,50%,0.05)"><span style="color:#710">'</span><span style="color:#D20">md</span><span style="color:#710">'</span></span>&#x000A;     filter <span style="color:#A60">:redcarpet</span>, <span style="color:#A60">:options</span> =&gt; {<span style="color:#A60">:fenced_code_blocks</span> =&gt; <span style="color:#069">true</span>},<span style="color:#A60">:renderer</span> =&gt; <span style="color:#036;font-weight:bold">MyRedcarpetRenderer</span>&#x000A;     layout <span style="background-color:hsla(0,100%,50%,0.05)"><span style="color:#710">'</span><span style="color:#D20">default</span><span style="color:#710">'</span></span>&#x000A;    <span style="color:#080;font-weight:bold">when</span> <span style="background-color:hsla(0,100%,50%,0.05)"><span style="color:#710">'</span><span style="color:#D20">haml</span><span style="color:#710">'</span></span>&#x000A;     filter <span style="color:#A60">:haml</span>&#x000A;     layout <span style="background-color:hsla(0,100%,50%,0.05)"><span style="color:#710">'</span><span style="color:#D20">default</span><span style="color:#710">'</span></span>&#x000A;   <span style="color:#080;font-weight:bold">end</span>&#x000A;  <span style="color:#080;font-weight:bold">end</span>&#x000A;<span style="color:#080;font-weight:bold">end</span></pre></div>
+          </div>
+          
+          <ul>
+          <li>レイアウト用のフィルターにhaml、記事用のフィルターにredcarpetを使っている。</li>
+          <li>MyRedcarpetRendererはコードのハイライト用にcoderay使うためのラッパーでlib/default.rbに書いた</li>
+          </ul>
+          <div class="CodeRay">
+            <div class="code"><pre>require <span style="background-color:hsla(0,100%,50%,0.05)"><span style="color:#710">&quot;</span><span style="color:#D20">redcarpet</span><span style="color:#710">&quot;</span></span>&#x000A;require <span style="background-color:hsla(0,100%,50%,0.05)"><span style="color:#710">&quot;</span><span style="color:#D20">coderay</span><span style="color:#710">&quot;</span></span>&#x000A;&#x000A;<span style="color:#080;font-weight:bold">class</span> <span style="color:#B06;font-weight:bold">MyRedcarpetRenderer</span> &lt; <span style="color:#036;font-weight:bold">Redcarpet</span>::<span style="color:#036;font-weight:bold">Render</span>::<span style="color:#036;font-weight:bold">XHTML</span>&#x000A;  <span style="color:#080;font-weight:bold">def</span> <span style="color:#06B;font-weight:bold">block_code</span>(code, language)&#x000A;    <span style="color:#080;font-weight:bold">if</span> language <span style="color:#080;font-weight:bold">then</span>&#x000A;      <span style="color:#036;font-weight:bold">CodeRay</span>.scan(code, language).div&#x000A;    <span style="color:#080;font-weight:bold">else</span>&#x000A;      <span style="background-color:hsla(0,100%,50%,0.05)"><span style="color:#710">&quot;</span><span style="color:#b0b">\n</span><span style="color:#D20">&lt;pre&gt;&lt;code&gt;</span><span style="background-color:hsla(0,0%,0%,0.07);color:black"><span style="font-weight:bold;color:#666">#{</span>code<span style="font-weight:bold;color:#666">}</span></span><span style="color:#D20">&lt;/code&gt;&lt;/pre&gt;</span><span style="color:#b0b">\n</span><span style="color:#710">&quot;</span></span>&#x000A;    <span style="color:#080;font-weight:bold">end</span>&#x000A;  <span style="color:#080;font-weight:bold">end</span>&#x000A;<span style="color:#080;font-weight:bold">end</span></pre></div>
+          </div>
+          
+          <p>以下の記事が大変参考になった</p>
+          
+          <ul>
+          <li><a href="http://blog.designrecipe.jp/2010/07/19/nanoc-basic/">静的な Web サイト生成ツール Nanoc 基本編 - まずは試してみる</a></li>
+          <li><a href="http://n.blueblack.net/articles/2012-05-03_02_nanoc_getting_started/">nanoc導入メモ 1/5 「Getting Started」編</a></li>
+          <li><a href="http://www.mk-mode.com/octopress/2013/01/30/nanoc-routing-when-compile/">Nanoc - コンパイル時のルーティング設定！</a></li>
+          </ul>
+        </div>
+      </div>
+      <a class="left" href="/articles/2012-04-28/">&laquo;[Older]   Home</a>
+      <a class="right" href="/articles/2013-03-23/">nanocメモ2   [Newer]&raquo;</a>
+      <div id='footer'>
+        <p>
+          Copyright c simplestyle_7 
+          <a href='http://validator.w3.org/check?uri=referer'>HTML5</a>
+          |
+          <a href='http://jigsaw.w3.org/css-validator/check/referer'>CSS</a>
+          |
+          <a href='http://www.html5webtemplates.co.uk'>design from HTML5webtemplates.co.uk</a>
+        </p>
+      </div>
+    </div>
+  </body>
+</html>

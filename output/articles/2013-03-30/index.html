@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>CentOS6.4上にnginx+spawn-fcgi+PHP5.4をyumで : だん死はnikirom</title>
+    <meta content='nanoc 3.6.4' name='generator'>
+    <meta content='text/html; charset=utf-8' http-equiv='content-type'>
+    <link href='http://fonts.googleapis.com/css?family=Tangerine&amp;v1' rel='stylesheet' type='text/css'>
+    <link href='http://fonts.googleapis.com/css?family=Yanone+Kaffeesatz' rel='stylesheet' type='text/css'>
+    <link href='http://fonts.googleapis.com/css?family=Source+Code+Pro' rel='stylesheet' type='text/css'>
+    <link href='/style/style.css' rel='stylesheet' type='text/css'>
+  </head>
+  <body>
+    <div id='main'>
+      <div id='header'>
+        <div id='logo'>
+          <h1>
+            <a href='/index.html'>だん死はnikirom</a>
+          </h1>
+        </div>
+        <div id='menubar'>
+          <ul id='menu'></ul>
+        </div>
+      </div>
+      <a class="left" href="/articles/2013-03-23/">&laquo;[Older]   nanocメモ2</a>
+      <a class="right" href="/articles/2013-08-30/">さくらVPSのOS入れ替え   [Newer]&raquo;</a>
+      <div id='site_content'>
+        <div id='sidebar_container'>
+          <img alt='paperclip' class='paperclip' src='/style/paperclip.png'>
+          <div class='sidebar'>
+            <h3>Latest</h3>
+            <li><a href="/articles/2013-10-14/">西沢さんAPI改</a> 2013/10/14 01:00:05</li>
+            <li><a href="/articles/2013-09-27/">西沢さんAPI</a> 2013/09/27 22:31:22</li>
+            <li><a href="/articles/2013-08-30/">さくらVPSのOS入れ替え</a> 2013/08/30 21:33:22</li>
+            <li><a href="/articles/2013-03-30/">CentOS6.4上にnginx+spawn-fcgi+PHP5.4をyumで</a> 2013/03/30 14:27:01</li>
+            <li><a href="/articles/2013-03-23/">nanocメモ2</a> 2013/03/23 04:19:29</li>
+            <li><a href="/articles/2013-03-17/">メモ</a> 2013/03/17 18:17:51</li>
+            <li><a href="/articles/2012-04-28/">Home</a> 2012/04/28 00:30:31</li>
+          </div>
+          <img alt='paperclip' class='paperclip' src='/style/paperclip.png'>
+          <div class='sidebar'>
+            <a class='twitter-timeline' data-widget-id='315184046252621824' href='https://twitter.com/nnikirom'>Tweets by @nnikirom</a>
+            <script>
+              !function(d,s,id){var js,fjs=d.getElementsByTagName(s)[0];if(!d.getElementById(id)){js=d.createElement(s);js.id=id;js.src="//platform.twitter.com/widgets.js";fjs.parentNode.insertBefore(js,fjs);}}(document,"script","twitter-wjs");
+            </script>
+          </div>
+        </div>
+        <div id='content'>
+          <!-- insert the page content here -->
+          <h1>CentOS6.4上にnginx+spawn-fcgi+PHP5.4をyumで</h1>
+          <p>タイトル通りサクッとyumで構築します。
+          PHPはunixソケットでnginxから呼び出し。</p>
+          
+          <p>ローカルホストのポート9000にLISTENしてる例は沢山あるんだけど、unixソケット使ってる例を日本語で探しきれなかったので書いておく。</p>
+          
+          <p>パフォーマンス的に違いがあるのかなどは未検証。</p>
+          
+          <h2>yumの設定</h2>
+          
+          <p>標準のyumでは全体的に古いかったりnginxが無かったりするのでrpmforge,epel,remi,nginxリポジトリの導入</p>
+          
+          <pre><code>&#x000A;# sudo rpm -ivh http://pkgs.repoforge.org/rpmforge-release/rpmforge-release-0.5.3-1.el6.rf.x86_64.rpm&#x000A;# sudo rpm -ivh http://dl.fedoraproject.org/pub/epel/6/x86_64/epel-release-6-8.noarch.rpm&#x000A;# sudo rpm -ivh http://rpms.famillecollet.com/enterprise/remi-release-6.rpm&#x000A;# sudo vim /etc/yum.repos.d/nginx.repo&#x000A;[nginx]&#x000A;name=nginx repo&#x000A;baseurl=http://nginx.org/packages/centos/$releasever/$basearch/&#x000A;gpgcheck=0&#x000A;enabled=1&#x000A;</code></pre>
+          
+          <h2>インストール</h2>
+          
+          <p>remiのみデフォルトでenabledが0になってる。
+          普段は標準のレポジトリしか使わないのであれば適宜「--enablerepo=」オプション付加</p>
+          
+          <pre><code>&#x000A;# sudo yum install nginx php spawn-fcgi &#x000A;</code></pre>
+          
+          <h2>設定</h2>
+          
+          <pre><code>&#x000A;# sudo vim /etc/sysconfig/spawn-fcgi&#x000A;SOCKET=/var/run/php-fcgi.sock&#x000A;OPTIONS="-u nginx -g nginx -s $SOCKET -S -M 0600 -C 32 -F 1 -P /var/run/spawn-fcgi.pid -- /usr/bin/php-cgi"&#x000A;&#x000A;# sudo vim /etc/nginx/conf.d/default.conf&#x000A;server {&#x000A;    listen       80;&#x000A;    server_name  localhost;&#x000A;&#x000A;&#x000A;    location / {&#x000A;        root   /usr/share/nginx/html;&#x000A;        index  index.html index.htm;&#x000A;    }&#x000A;&#x000A;    location ~ \.php$ {&#x000A;        root           /usr/share/nginx/html;&#x000A;        fastcgi_index  index.php;&#x000A;        fastcgi_pass   unix:/var/run/php-fcgi.sock;&#x000A;        fastcgi_param  SCRIPT_FILENAME  $document_root$fastcgi_script_name;&#x000A;        include        fastcgi_params;&#x000A;    }&#x000A;}&#x000A;&#x000A;# /etc/init.d/spawn-fcgi start&#x000A;# /etc/init.d/nginx start&#x000A;</code></pre>
+          
+          <p>これでDocumentRootにphpinfo等設置して動作確認</p>
+          
+          <h2>未解決の問題</h2>
+          
+          <p>fastcgi<em>paramでinclude</em>pathが指定できなかった。
+          バーチャルで領域を複数作る場合に困る。</p>
+          
+          <p>解決策はPHP 5.3.0を使用して.user.iniをDocumentRootに設置し、php.ini書式で設定を書けばバーチャルごとに適用される。</p>
+          
+          <p>ただDocumentRootに置くのでアクセスできないように考慮する必要あり</p>
+          
+          <pre><code>&#x000A;# vim /etc/nginx/conf.d/default.conf&#x000A;    location ~ /\.user.ini {&#x000A;        deny  all;&#x000A;    }&#x000A;</code></pre>
+        </div>
+      </div>
+      <a class="left" href="/articles/2013-03-23/">&laquo;[Older]   nanocメモ2</a>
+      <a class="right" href="/articles/2013-08-30/">さくらVPSのOS入れ替え   [Newer]&raquo;</a>
+      <div id='footer'>
+        <p>
+          Copyright c simplestyle_7 
+          <a href='http://validator.w3.org/check?uri=referer'>HTML5</a>
+          |
+          <a href='http://jigsaw.w3.org/css-validator/check/referer'>CSS</a>
+          |
+          <a href='http://www.html5webtemplates.co.uk'>design from HTML5webtemplates.co.uk</a>
+        </p>
+      </div>
+    </div>
+  </body>
+</html>

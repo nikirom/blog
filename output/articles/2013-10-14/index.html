@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>西沢さんAPI改 : だん死はnikirom</title>
+    <meta content='nanoc 3.6.4' name='generator'>
+    <meta content='text/html; charset=utf-8' http-equiv='content-type'>
+    <link href='http://fonts.googleapis.com/css?family=Tangerine&amp;v1' rel='stylesheet' type='text/css'>
+    <link href='http://fonts.googleapis.com/css?family=Yanone+Kaffeesatz' rel='stylesheet' type='text/css'>
+    <link href='http://fonts.googleapis.com/css?family=Source+Code+Pro' rel='stylesheet' type='text/css'>
+    <link href='/style/style.css' rel='stylesheet' type='text/css'>
+  </head>
+  <body>
+    <div id='main'>
+      <div id='header'>
+        <div id='logo'>
+          <h1>
+            <a href='/index.html'>だん死はnikirom</a>
+          </h1>
+        </div>
+        <div id='menubar'>
+          <ul id='menu'></ul>
+        </div>
+      </div>
+      <a class="left" href="/articles/2013-09-27/">&laquo;[Older]   西沢さんAPI</a>
+      
+      <div id='site_content'>
+        <div id='sidebar_container'>
+          <img alt='paperclip' class='paperclip' src='/style/paperclip.png'>
+          <div class='sidebar'>
+            <h3>Latest</h3>
+            <li><a href="/articles/2013-10-14/">西沢さんAPI改</a> 2013/10/14 01:00:05</li>
+            <li><a href="/articles/2013-09-27/">西沢さんAPI</a> 2013/09/27 22:31:22</li>
+            <li><a href="/articles/2013-08-30/">さくらVPSのOS入れ替え</a> 2013/08/30 21:33:22</li>
+            <li><a href="/articles/2013-03-30/">CentOS6.4上にnginx+spawn-fcgi+PHP5.4をyumで</a> 2013/03/30 14:27:01</li>
+            <li><a href="/articles/2013-03-23/">nanocメモ2</a> 2013/03/23 04:19:29</li>
+            <li><a href="/articles/2013-03-17/">メモ</a> 2013/03/17 18:17:51</li>
+            <li><a href="/articles/2012-04-28/">Home</a> 2012/04/28 00:30:31</li>
+          </div>
+          <img alt='paperclip' class='paperclip' src='/style/paperclip.png'>
+          <div class='sidebar'>
+            <a class='twitter-timeline' data-widget-id='315184046252621824' href='https://twitter.com/nnikirom'>Tweets by @nnikirom</a>
+            <script>
+              !function(d,s,id){var js,fjs=d.getElementsByTagName(s)[0];if(!d.getElementById(id)){js=d.createElement(s);js.id=id;js.src="//platform.twitter.com/widgets.js";fjs.parentNode.insertBefore(js,fjs);}}(document,"script","twitter-wjs");
+            </script>
+          </div>
+        </div>
+        <div id='content'>
+          <!-- insert the page content here -->
+          <h1>西沢さんAPI改</h1>
+          <p>「改」って艦コレっぽい(提督ではない)</p>
+          
+          <p><a href="http://www.nikirom.com/nishizawasan">西沢さんAPI</a></p>
+          
+          <ul>
+          <li>mruby-redisにRANDOMKEYコマンド実装</li>
+          <li>mrubyからDirクラスを外してファイル名をredisへ</li>
+          <li>ngx_mrubyスクリプトの書き直し</li>
+          <li>redisにファイル名を自動登録</li>
+          </ul>
+          
+          <h2>mruby-redisにRANDOMKEYコマンド実装</h2>
+          
+          <p>mruby-redisは<a href="http://blog.matsumoto-r.jp/?p=3118">「mrubyの良さを生かすために機能は今の所最小限にしています。」</a>という方針なのでコマンドは最小限しか用意されてません。</p>
+          
+          <p>RANDOMKEYコマンドはランダムにkeyを返してくれるだけなのでget keyを応用すればなんとかなるだろうってことで実装します。</p>
+          
+          <p><a href="https://github.com/matsumoto-r/mruby-redis/blob/master/src/mrb_redis.c">get keyの実装は以下</a></p>
+          <div class="CodeRay">
+            <div class="code"><pre>&#x000A; (snip)&#x000A;<span style="color:#579">#include</span> <span style="color:#B44;font-weight:bold">&lt;hiredis/hiredis.h&gt;</span>&#x000A; (snip)&#x000A;mrb_value mrb_redis_get(mrb_state *mrb, mrb_value self)&#x000A;{&#x000A;    mrb_value key;&#x000A;    <span style="color:#0a5;font-weight:bold">char</span> *val;&#x000A;&#x000A;    mrb_get_args(mrb, <span style="background-color:hsla(0,100%,50%,0.05)"><span style="color:#710">&quot;</span><span style="color:#D20">o</span><span style="color:#710">&quot;</span></span>, &amp;key);&#x000A;    redisContext *rc = mrb_redis_get_context(mrb, self);&#x000A;    redisReply *rs = redisCommand(rc, <span style="background-color:hsla(0,100%,50%,0.05)"><span style="color:#710">&quot;</span><span style="color:#D20">GET %s</span><span style="color:#710">&quot;</span></span>, RSTRING_PTR(key));&#x000A;    <span style="color:#080;font-weight:bold">if</span> (rs-&gt;type == REDIS_REPLY_STRING) {&#x000A;        val = strdup(rs-&gt;str);&#x000A;        freeReplyObject(rs);&#x000A;        <span style="color:#080;font-weight:bold">return</span> mrb_str_new(mrb, val, strlen(val));&#x000A;    } <span style="color:#080;font-weight:bold">else</span> {&#x000A;        freeReplyObject(rs);&#x000A;        <span style="color:#080;font-weight:bold">return</span> mrb_nil_value();&#x000A;    }&#x000A;}&#x000A;&#x000A; (snip)&#x000A;&#x000A;mrb_define_method(mrb, redis, <span style="background-color:hsla(0,100%,50%,0.05)"><span style="color:#710">&quot;</span><span style="color:#D20">get</span><span style="color:#710">&quot;</span></span>, mrb_redis_get, ARGS_ANY());&#x000A;</pre></div>
+          </div>
+          
+          <p>肝はhiredisっていうCのredisAPIで、これのおかげで「redisCommand(rc, &quot;GET %s&quot;, RSTRING_PTR(key))」ってな感じでコマンド呼び出しが可能になってる。</p>
+          
+          <p>randomkeyコマンドは引数が必要ないので以下の様に実現可能</p>
+          <div class="CodeRay">
+            <div class="code"><pre>&#x000A; (snip)&#x000A;&#x000A;mrb_value mrb_redis_randomkey (mrb_state *mrb, mrb_value self)&#x000A;{&#x000A;    <span style="color:#0a5;font-weight:bold">char</span> *val;&#x000A;&#x000A;    redisContext *rc = mrb_redis_get_context(mrb, self);&#x000A;    redisReply *rs = redisCommand(rc, <span style="background-color:hsla(0,100%,50%,0.05)"><span style="color:#710">&quot;</span><span style="color:#D20">RANDOMKEY</span><span style="color:#710">&quot;</span></span>);&#x000A;    <span style="color:#080;font-weight:bold">if</span> (rs-&gt;type == REDIS_REPLY_STRING) {&#x000A;        val = strdup(rs-&gt;str);&#x000A;        freeReplyObject(rs);&#x000A;        <span style="color:#080;font-weight:bold">return</span> mrb_str_new(mrb, val, strlen(val));&#x000A;    } <span style="color:#080;font-weight:bold">else</span> {&#x000A;        freeReplyObject(rs);&#x000A;        <span style="color:#080;font-weight:bold">return</span> mrb_nil_value();&#x000A;    }&#x000A;}&#x000A;&#x000A; (snip)&#x000A;&#x000A;    mrb_define_method(mrb, redis, <span style="background-color:hsla(0,100%,50%,0.05)"><span style="color:#710">&quot;</span><span style="color:#D20">randomkey</span><span style="color:#710">&quot;</span></span>, mrb_redis_randomkey, ARGS_NONE());&#x000A;&#x000A; (snip)&#x000A;</pre></div>
+          </div>
+          
+          <p>引数がいらない時は明示的に「ARGS_NONE()」って教えてあげないとmrubyのコンパイルで引っかかる。</p>
+          
+          <p>自分が使ってるngx<em>mrubyで指定されているmruby</em>redisが古いんでgitから持ってきてmrb_redis.cを書き換えた。後で必要になる(スマートな実装じゃないからどうにかしたいんだけど)select databaseを使用するため</p>
+          
+          <h2>mrubyからDirクラスを外してファイル名をredisへ</h2>
+          
+          <p><a href="http://www.nikirom.com/articles/2013-09-27/">以前のbuild_config.rb</a>からiij/mruby-dirを外す</p>
+          
+          <pre><code>&#x000A; (snip)&#x000A;  # include the default GEMs&#x000A;  conf.gembox 'default'&#x000A;  #conf.gem :github => 'iij/mruby-dir'&#x000A;  #conf.gem :github => 'matsumoto-r/mruby-redis'&#x000A;  conf.gem :github => 'masamitsu-murase/mruby-hs-regexp'&#x000A; (snip)&#x000A;&#x000A;</code></pre>
+          
+          <p>これでコンパイルしてインストール</p>
+          
+          <p>そういえば常時「LD_PRELOAD=/usr/local/jemalloc/lib/libjemalloc.so」が環境変数に入ってます。</p>
+          
+          <p>コンパイラはUbuntu clang version 3.2-1~exp9ubuntu1 (tags/RELEASE_32/final) (based on LLVM 3.2)です。</p>
+          
+          <h2>ngx_mrubyスクリプトの書き直し</h2>
+          
+          <p>おぶじぇくと指向とは...</p>
+          <div class="CodeRay">
+            <div class="code"><pre>&#x000A;header = <span style="color:#036;font-weight:bold">Nginx</span>::<span style="color:#036;font-weight:bold">Headers_in</span>.new&#x000A;userdata = <span style="color:#036;font-weight:bold">Userdata</span>.new <span style="background-color:hsla(0,100%,50%,0.05)"><span style="color:#710">&quot;</span><span style="color:#D20">redis_data_key</span><span style="color:#710">&quot;</span></span>&#x000A;req = <span style="color:#036;font-weight:bold">Nginx</span>::<span style="color:#036;font-weight:bold">Request</span>.new&#x000A;redis = userdata.redis&#x000A;&#x000A;<span style="color:#080;font-weight:bold">def</span> <span style="color:#06B;font-weight:bold">view</span>(dir,img)&#x000A;  <span style="color:#036;font-weight:bold">Nginx</span>.rputs(<span style="background-color:hsla(0,100%,50%,0.05)"><span style="color:#710">&quot;</span><span style="color:#D20">&lt;html&gt;</span><span style="color:#b0b">\n</span><span style="color:#710">&quot;</span></span>)&#x000A;  <span style="color:#036;font-weight:bold">Nginx</span>.rputs(<span style="background-color:hsla(0,100%,50%,0.05)"><span style="color:#710">&quot;</span><span style="color:#D20">&lt;img src=</span><span style="color:#b0b">\&quot;</span><span style="color:#D20">/</span><span style="color:#710">&quot;</span></span> + dir + <span style="background-color:hsla(0,100%,50%,0.05)"><span style="color:#710">&quot;</span><span style="color:#D20">/</span><span style="color:#710">&quot;</span></span>  + img + <span style="background-color:hsla(0,100%,50%,0.05)"><span style="color:#710">&quot;</span><span style="color:#b0b">\&quot;</span><span style="color:#D20">&gt;</span><span style="color:#b0b">\n</span><span style="color:#710">&quot;</span></span>)&#x000A;  <span style="color:#036;font-weight:bold">Nginx</span>.rputs(<span style="background-color:hsla(0,100%,50%,0.05)"><span style="color:#710">&quot;</span><span style="color:#D20">&lt;p&gt;&lt;a href=</span><span style="color:#b0b">\&quot;</span><span style="color:#D20">/nishizawasan?gif</span><span style="color:#b0b">\&quot;</span><span style="color:#D20">&gt;gif only&lt;/p&gt;</span><span style="color:#b0b">\n</span><span style="color:#710">&quot;</span></span>)&#x000A;  <span style="color:#036;font-weight:bold">Nginx</span>.rputs(<span style="background-color:hsla(0,100%,50%,0.05)"><span style="color:#710">&quot;</span><span style="color:#D20">&lt;p&gt;&lt;a href=</span><span style="color:#b0b">\&quot;</span><span style="color:#D20">/nishizawasan</span><span style="color:#b0b">\&quot;</span><span style="color:#D20">&gt;all img&lt;/p&gt;</span><span style="color:#b0b">\n</span><span style="color:#710">&quot;</span></span>)&#x000A;  <span style="color:#036;font-weight:bold">Nginx</span>.rputs(<span style="background-color:hsla(0,100%,50%,0.05)"><span style="color:#710">&quot;</span><span style="color:#D20">&lt;/html&gt;</span><span style="color:#710">&quot;</span></span>)&#x000A;  <span style="color:#036;font-weight:bold">Nginx</span>.return <span style="color:#036;font-weight:bold">Nginx</span>::<span style="color:#036;font-weight:bold">NGX_HTTP_OK</span>&#x000A;<span style="color:#080;font-weight:bold">end</span>&#x000A;&#x000A;<span style="color:#080;font-weight:bold">unless</span> req.var.args.nil?&#x000A;  <span style="color:#080;font-weight:bold">if</span> req.var.args == <span style="background-color:hsla(0,100%,50%,0.05)"><span style="color:#710">&quot;</span><span style="color:#D20">gif</span><span style="color:#710">&quot;</span></span>&#x000A;    redis.select <span style="color:#00D">2</span>&#x000A;    img_key = redis.randomkey&#x000A;    view(<span style="background-color:hsla(0,100%,50%,0.05)"><span style="color:#710">&quot;</span><span style="color:#D20">app-img-gif</span><span style="color:#710">&quot;</span></span>,img_key)&#x000A;  <span style="color:#080;font-weight:bold">end</span>&#x000A;<span style="color:#080;font-weight:bold">end</span>&#x000A;&#x000A;<span style="color:#080;font-weight:bold">if</span> header[<span style="background-color:hsla(0,100%,50%,0.05)"><span style="color:#710">&quot;</span><span style="color:#D20">User-Agent</span><span style="color:#710">&quot;</span></span>] =~ <span style="background-color:hsla(300,100%,50%,0.06)"><span style="color:#404">/</span><span style="color:#808">Chrome|Opera</span><span style="color:#404">/</span></span>&#x000A;  redis.select <span style="color:#00D">0</span>&#x000A;  img_key = redis.randomkey&#x000A;&#x000A;  <span style="color:#080;font-weight:bold">if</span> img_key =~ <span style="background-color:hsla(300,100%,50%,0.06)"><span style="color:#404">/</span><span style="color:#D20">\.</span><span style="color:#808">gif</span><span style="color:#404">/</span></span>&#x000A;    view(<span style="background-color:hsla(0,100%,50%,0.05)"><span style="color:#710">&quot;</span><span style="color:#D20">app-img-gif</span><span style="color:#710">&quot;</span></span>,img_key)&#x000A;  <span style="color:#080;font-weight:bold">else</span>&#x000A;    view(<span style="background-color:hsla(0,100%,50%,0.05)"><span style="color:#710">&quot;</span><span style="color:#D20">app-img-webp</span><span style="color:#710">&quot;</span></span>,img_key)&#x000A;  <span style="color:#080;font-weight:bold">end</span>&#x000A;<span style="color:#080;font-weight:bold">else</span>&#x000A;  redis.select <span style="color:#00D">1</span>&#x000A;  img_key = redis.randomkey&#x000A;&#x000A;  <span style="color:#080;font-weight:bold">if</span> img_key =~ <span style="background-color:hsla(300,100%,50%,0.06)"><span style="color:#404">/</span><span style="color:#D20">\.</span><span style="color:#808">gif</span><span style="color:#404">/</span></span>&#x000A;    view(<span style="background-color:hsla(0,100%,50%,0.05)"><span style="color:#710">&quot;</span><span style="color:#D20">app-img-gif</span><span style="color:#710">&quot;</span></span>,img_key)&#x000A;  <span style="color:#080;font-weight:bold">else</span>&#x000A;    view(<span style="background-color:hsla(0,100%,50%,0.05)"><span style="color:#710">&quot;</span><span style="color:#D20">app-img</span><span style="color:#710">&quot;</span></span>,img_key)&#x000A;  <span style="color:#080;font-weight:bold">end</span>&#x000A;<span style="color:#080;font-weight:bold">end</span></pre></div>
+          </div>
+          
+          <p>疲れてきたので「Nginx::Request.new」については<a href="https://github.com/matsumoto-r/ngx_mruby/tree/master/example">ここ</a>と<a href="https://github.com/cubicdaiya/mruby_nginx_module/wiki">ここ</a>を参考に</p>
+          
+          <p>「Userdata.new」は<a href="http://blog.matsumoto-r.jp/?p=3729">ここ</a></p>
+          
+          <h2>redisにファイル名を自動登録</h2>
+          
+          <p>Linux 2.6.13 カーネルから使えるinotifyでディレクトリ監視して実現する。</p>
+          
+          <p>まずinotifyのインストール</p>
+          
+          <pre><code># apt-get install inotify-tools&#x000A;</code></pre>
+          
+          <p>Ubuntuなら上記でインストールできる。</p>
+          
+          <p>スマートじゃないのはわかってるけどスクリプトを3つ用意</p>
+          
+          <pre><code>&#x000A;#!/bin/sh&#x000A;&#x000A;NOTIFYPATH="/home/ruby2-1/blog/morikin_blog/output/app-img"&#x000A;&#x000A;inotifywait -e move,delete,create --format '%f;%e' -m $NOTIFYPATH | while read line; do&#x000A;&#x000A;  file=`echo $line|cut -d";" -f1`&#x000A;  action=`echo $line|cut -d";" -f2`&#x000A;&#x000A;  case "$action" in&#x000A;     "CREATE" | "MOVED_TO" ) redis-cli -n 1 set $file 0 1>/dev/null 2>&1 ;;&#x000A;     "DELETE" | "MOVED_FROM" ) redis-cli -n 1 del $file 1>/dev/null 2>&1 ;;&#x000A;  esac&#x000A;done&#x000A;</code></pre>
+          
+          <pre><code>&#x000A;#!/bin/sh&#x000A;&#x000A;NOTIFYPATH="/home/ruby2-1/blog/morikin_blog/output/app-img-gif"&#x000A;&#x000A;inotifywait -e move,delete,create --format '%f;%e' -m $NOTIFYPATH | while read line; do&#x000A;&#x000A;  file=`echo $line|cut -d";" -f1`&#x000A;  action=`echo $line|cut -d";" -f2`&#x000A;&#x000A;  case "$action" in&#x000A;     "CREATE" | "MOVED_TO" ) redis-cli -n 2 set $file 0 1>/dev/null 2>&1 ;&#x000A;                             redis-cli -n 1 set $file 0 1>/dev/null 2>&1 ;&#x000A;                             redis-cli -n 0 set $file 0 1>/dev/null 2>&1 ;;&#x000A;&#x000A;     "DELETE" | "MOVED_FROM" ) redis-cli -n 2 del $file 1>/dev/null 2>&1 ;&#x000A;                               redis-cli -n 1 del $file 1>/dev/null 2>&1 ;&#x000A;                               redis-cli -n 0 del $file 1>/dev/null 2>&1 ;;&#x000A;  esac&#x000A;done&#x000A;</code></pre>
+          
+          <pre><code>&#x000A;#!/bin/sh&#x000A;&#x000A;NOTIFYPATH="/home/ruby2-1/blog/morikin_blog/output/app-img-webp"&#x000A;&#x000A;inotifywait -e move,delete,create --format '%f;%e' -m $NOTIFYPATH | while read line; do&#x000A;&#x000A;  file=`echo $line|cut -d";" -f1`&#x000A;  action=`echo $line|cut -d";" -f2`&#x000A;&#x000A;  case "$action" in&#x000A;     "CREATE" | "MOVED_TO" ) redis-cli -n 0 set $file 0 1>/dev/null 2>&1 ;;&#x000A;     "DELETE" | "MOVED_FROM" ) redis-cli -n 0 del $file 1>/dev/null 2>&1 ;;&#x000A;  esac&#x000A;done&#x000A;</code></pre>
+          
+          <p>デーモン化には<a href="http://supervisord.org/">Supervisor</a>を使用した。</p>
+          
+          <p>「/etc/supervisord/」ってディレクトリ切ってそこにconfを置いたら色々面倒になってしまってこんなスクリプト配置することになってしまって悲しいのでなんかいい案を知りたい</p>
+          
+          <pre><code>&#x000A;#!/bin/sh&#x000A;&#x000A;/usr/local/bin/supervisorctl.py -c /etc/supervisord/supervisord.conf $@&#x000A;</code></pre>
+          
+          <p>アルコール駆動自分用記録終わりです。</p>
+        </div>
+      </div>
+      <a class="left" href="/articles/2013-09-27/">&laquo;[Older]   西沢さんAPI</a>
+      
+      <div id='footer'>
+        <p>
+          Copyright c simplestyle_7 
+          <a href='http://validator.w3.org/check?uri=referer'>HTML5</a>
+          |
+          <a href='http://jigsaw.w3.org/css-validator/check/referer'>CSS</a>
+          |
+          <a href='http://www.html5webtemplates.co.uk'>design from HTML5webtemplates.co.uk</a>
+        </p>
+      </div>
+    </div>
+  </body>
+</html>

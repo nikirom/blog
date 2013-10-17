@@ -11,6 +11,4 @@
 !/Rules
 !/layouts/
 !/nanoc.yaml
-!/output/articles/
-!/output/index.html
-!/output/style/
+!/output/
