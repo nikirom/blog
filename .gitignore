@@ -1,8 +1,16 @@
-logs/
-tmp/
-.sass-cache/
-crash.log
-output.tgz
-nishizawasan/
-output/
-git-old/
+## .gitignore ##
+# ignore all
+/*
+
+# allow
+!/.gitignore
+!/README
+!/content/
+!/item_add.sh
+!/lib/
+!/Rules
+!/layouts/
+!/nanoc.yaml
+!/output/articles/
+!/output/index.html
+!/output/style/
