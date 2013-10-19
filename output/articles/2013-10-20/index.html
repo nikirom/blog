@@ -1,0 +1,159 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>WindowsのVMwarePlayerでCoreOS : だん死はnikirom</title>
+    <meta content='nanoc 3.6.4' name='generator'>
+    <meta content='text/html; charset=utf-8' http-equiv='content-type'>
+    <link href='http://fonts.googleapis.com/css?family=Tangerine&amp;v1' rel='stylesheet' type='text/css'>
+    <link href='http://fonts.googleapis.com/css?family=Yanone+Kaffeesatz' rel='stylesheet' type='text/css'>
+    <link href='http://fonts.googleapis.com/css?family=Source+Code+Pro' rel='stylesheet' type='text/css'>
+    <link href='/style/style.css' rel='stylesheet' type='text/css'>
+  </head>
+  <body>
+    <div id='main'>
+      <div id='header'>
+        <div id='logo'>
+          <h1>
+            <a href='/index.html'>だん死はnikirom</a>
+          </h1>
+        </div>
+        <div id='menubar'>
+          <ul id='menu'></ul>
+        </div>
+      </div>
+      <a class="left" href="/articles/2013-10-14/">&laquo;[Older]   西沢さんAPI改</a>
+      
+      <div id='site_content'>
+        <div id='sidebar_container'>
+          <img alt='paperclip' class='paperclip' src='/style/paperclip.png'>
+          <div class='sidebar'>
+            <h3>Latest</h3>
+            <li><a href="/articles/2013-10-20/">WindowsのVMwarePlayerでCoreOS</a> 2013/10/20 02:40:37</li>
+            <li><a href="/articles/2013-10-14/">西沢さんAPI改</a> 2013/10/14 01:00:05</li>
+            <li><a href="/articles/2013-09-27/">西沢さんAPI</a> 2013/09/27 22:31:22</li>
+            <li><a href="/articles/2013-08-30/">さくらVPSのOS入れ替え</a> 2013/08/30 21:33:22</li>
+            <li><a href="/articles/2013-03-30/">CentOS6.4上にnginx+spawn-fcgi+PHP5.4をyumで</a> 2013/03/30 14:27:01</li>
+            <li><a href="/articles/2013-03-23/">nanocメモ2</a> 2013/03/23 04:19:29</li>
+            <li><a href="/articles/2013-03-17/">メモ</a> 2013/03/17 18:17:51</li>
+            <li><a href="/articles/2012-04-28/">Home</a> 2012/04/28 00:30:31</li>
+          </div>
+          <img alt='paperclip' class='paperclip' src='/style/paperclip.png'>
+          <div class='sidebar'>
+            <a class='twitter-timeline' data-widget-id='315184046252621824' href='https://twitter.com/nnikirom'>Tweets by @nnikirom</a>
+            <script>
+              !function(d,s,id){var js,fjs=d.getElementsByTagName(s)[0];if(!d.getElementById(id)){js=d.createElement(s);js.id=id;js.src="//platform.twitter.com/widgets.js";fjs.parentNode.insertBefore(js,fjs);}}(document,"script","twitter-wjs");
+            </script>
+          </div>
+        </div>
+        <div id='content'>
+          <!-- insert the page content here -->
+          <h1>WindowsのVMwarePlayerでCoreOS</h1>
+          <p>MACとVagrantの例が多いので記録しておく</p>
+          
+          <ul>
+          <li>PXE boot環境(Raspbian)作成 </li>
+          <li>VMwarePlayerの設定</li>
+          </ul>
+          
+          <p>VirtualBoxでは挫折しました。
+          <a href="http://d.hatena.ne.jp/dayflower/20110216/1297839567" title="KVM で PXE ブートしようとしたら難儀した">ここ</a>で指摘されているのと一緒の原因なのかなーと思ってるけど2年前の記事だしなんとも言えない</p>
+          
+          <h2>PXE boot環境作成</h2>
+          
+          <p>既にローカルネットワークではDHCPが稼働しているのでProxy DHCPを使用します。</p>
+          
+          <p>Proxy DHCPにはDnsmasqかtftpd-hpa + pxe-pdhcpのどっちかを使用するのが楽にできるっぽい。</p>
+          
+          <p>今回は後者を使用しています。理由はVirtualBoxで挫折して疲れ切った時後者で一発で行けたからです…</p>
+          
+          <ul>
+          <li>tftpd-hpa</li>
+          </ul>
+          
+          <p>とりあえずインストール</p>
+          
+          <pre><code># apt-get install install tftpd-hpa&#x000A;</code></pre>
+          
+          <p>設定</p>
+          
+          <pre><code># /etc/default/tftpd-hpa&#x000A;&#x000A;TFTP_USERNAME="tftp"&#x000A;TFTP_DIRECTORY="/srv/tftp"&#x000A;TFTP_ADDRESS="0.0.0.0:69"&#x000A;RUN_DAEMON="yes"&#x000A;TFTP_OPTIONS="--secure -4"&#x000A;OPTIONS="-l -s /srv/tftp"&#x000A;</code></pre>
+          
+          <pre><code># ln -s /srv/tftp/ /tftpboot&#x000A;</code></pre>
+          
+          <ul>
+          <li>tftp boot ディレクトリ作成</li>
+          </ul>
+          
+          <p><a href="http://coreos.com/docs/pxe/" title="Documentation - PXE">公式ドキュメント</a>があるんでそれを参考に</p>
+          
+          <p>TFTP_DIRECTORYで設定してあるディレクトリにファイルを配置</p>
+          
+          <pre><code># wget http://storage.core-os.net/coreos/amd64-generic/dev-channel/coreos_production_pxe.vmlinuz&#x000A;# wget http://storage.core-os.net/coreos/amd64-generic/dev-channel/coreos_production_pxe_image.cpio.gz&#x000A;</code></pre>
+          
+          <pre><code># ls -l --time-style=+"%Y/%m/%d %H:%M:%S" *&#x000A;-rw-r--r-- 1 nobody nogroup        5 2013/10/19 17:37:06 boot.msg&#x000A;-rw-r--r-- 1 nobody nogroup 13589760 2013/10/18 00:42:58 coreos_production_pxe.vmlinuz&#x000A;-rw-r--r-- 1 nobody nogroup 66056381 2013/10/18 00:42:58 coreos_production_pxe_image.cpio.gz&#x000A;-rw-r--r-- 1 nobody nogroup    56262 2013/10/19 23:31:04 gpxe-1.0.1-undionly.kpxe&#x000A;-rw-r--r-- 1 nobody nogroup    26461 2013/10/19 16:20:54 pxelinux.0&#x000A;&#x000A;pxelinux.cfg:&#x000A;合計 4&#x000A;-rw-r--r-- 1 nobody nogroup 593 2013/10/19 23:11:45 default&#x000A;root@raspberrypi:/srv/tftp#&#x000A;</code></pre>
+          
+          <p>defaultの公開鍵は自分で作ったのを入れましょう</p>
+          
+          <pre><code>#default&#x000A;&#x000A;default coreos&#x000A;prompt 1&#x000A;timeout 15&#x000A;&#x000A;display boot.msg&#x000A;&#x000A;label coreos&#x000A;  menu default&#x000A;  kernel coreos_production_pxe.vmlinuz&#x000A;  append initrd=coreos_production_pxe_image.cpio.gz root=squashfs: state=tmpfs: sshkey="ssh-rsa <公開鍵>"&#x000A;</code></pre>
+          
+          <p>pxelinux.0はUbuntuから持ってきました。</p>
+          
+          <p>手元のOSのから適宜持ってきたもので大丈夫だと思います。</p>
+          
+          <ul>
+          <li>pxe-pdhcp</li>
+          </ul>
+          
+          <p>githubから</p>
+          
+          <pre><code># git clone https://github.com/frsyuki/pxe-pdhcp.git&#x000A;# make&#x000A;</code></pre>
+          
+          <p>起動</p>
+          
+          <pre><code># pxe-pdhcp -l 0.0.0.0 -b 255.255.255.255 -t 192.168.0.3 -d pxelinux.0&#x000A;</code></pre>
+          
+          <h2>VMwarePlayerの設定</h2>
+          
+          <ol>
+          <li>新規仮想マシンの作成</li>
+          <li>後でOSをインストール</li>
+          <li>Linux(L) 他のLinux 3.x カーネル64ビット</li>
+          <li>仮想マシン名は任意で</li>
+          <li>ディスクサイズは全く必要ないので100Mを指定しました</li>
+          <li>完了 </li>
+          </ol>
+          
+          <p>ネットワーク設定</p>
+          
+          <p><img src="/articles/2013-10-20/vm1.PNG" alt="VMware Playerのネットワーク設定"/></p>
+          
+          <p>アダプタの設定でホストのWindowsで実際に使ってるネットワークアダプタ(ローカルエリア接続等のプロパティでみえる「接続の方法」ってやつ)を指定</p>
+          
+          <h2>CoreOS起動</h2>
+          
+          <p>ここまでで設定が正しければ仮想マシンを再生すればCoreOSがブートされます。</p>
+          
+          <p>pxe-pdhcp起動中にraspbianのssh切れてしまって、再接続したらpxe-pdhcpのプロセス残ってたからそれでProxy DHCP効くのかと思ってたら効いてなくてかなりはまってた。</p>
+          
+          <p>プロンプト促されたらエンターかほっとけばブートされます。</p>
+          
+          <p>DHCPでIP払いだされたらユーザー「core」、defaultファイルで指定した公開鍵と対になる秘密鍵でログインできます。</p>
+          
+          <p>終わり</p>
+        </div>
+      </div>
+      <a class="left" href="/articles/2013-10-14/">&laquo;[Older]   西沢さんAPI改</a>
+      
+      <div id='footer'>
+        <p>
+          Copyright c simplestyle_7 
+          <a href='http://validator.w3.org/check?uri=referer'>HTML5</a>
+          |
+          <a href='http://jigsaw.w3.org/css-validator/check/referer'>CSS</a>
+          |
+          <a href='http://www.html5webtemplates.co.uk'>design from HTML5webtemplates.co.uk</a>
+        </p>
+      </div>
+    </div>
+  </body>
+</html>
