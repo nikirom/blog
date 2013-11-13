@@ -26,7 +26,12 @@
         #sidebar_container
           %img.paperclip{:alt => "paperclip", :src => "/style/paperclip.png"}/
           .sidebar
+            %h3
+              %a{:href => "/aboutme.html"} About me
+          %img.paperclip{:alt => "paperclip", :src => "/style/paperclip.png"}/
+          .sidebar
             = render('_article_list')
+
           %img.paperclip{:alt => "paperclip", :src => "/style/paperclip.png"}/
           .sidebar
             %a.twitter-timeline{"data-widget-id" => "315184046252621824", :href => "https://twitter.com/nnikirom"} Tweets by @nnikirom
